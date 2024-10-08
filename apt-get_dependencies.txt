@@ -1,0 +1,7 @@
+ca-certificates
+unzip
+curl
+git
+direnv
+shellcheck
+zsh
