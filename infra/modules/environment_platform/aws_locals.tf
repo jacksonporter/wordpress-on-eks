@@ -21,4 +21,8 @@ locals {
       if az_suffix == m.az_suffix
     ]
   }
+
+  cluster_name           = "${var.environment}-${data.aws_region.current.name}"
+  irsa_sub_condition_key = "${replace(aws_iam_openid_connect_provider.irsa.url, "https://", "")}:sub"
+  cluster_log_group_name = "/aws/eks/${local.cluster_name}/cluster"
 }
