@@ -1,9 +1,0 @@
-FROM ubuntu:latest
-
-RUN apt-get update && \
-      apt-get -y install sudo curl
-
-RUN useradd -m docker && echo "docker:docker" | chpasswd && usermod -a -G sudo docker
-
-USER docker
-CMD /bin/bash
