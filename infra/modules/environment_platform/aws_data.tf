@@ -9,3 +9,7 @@ data "aws_iam_session_context" "current" {
 data "aws_eks_cluster_auth" "current" {
   name = aws_eks_cluster.this.name
 }
+
+data "aws_route53_zone" "base" {
+  name = var.base_domain_zone_name
+}

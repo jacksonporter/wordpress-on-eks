@@ -6,6 +6,7 @@ locals {
   aws_lb_controller_fargate_labels = {
     computeType = "fargate",
   }
+  aws_lb_controller_ingress_class_name = "alb"
 }
 
 data "http" "aws_lb_controller_iam_policy_json" {
@@ -42,16 +43,6 @@ resource "helm_release" "aws_lb_controller" {
   }
 
   set {
-    name  = "serviceAccount.create"
-    value = "true"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = local.aws_lb_controller_service_account_name
-  }
-
-  set {
     name  = "region"
     value = data.aws_region.current.name
   }
@@ -61,8 +52,20 @@ resource "helm_release" "aws_lb_controller" {
     value = aws_vpc.this.id
   }
 
+  set {
+    name  = "ingressClass"
+    value = local.aws_lb_controller_ingress_class_name
+  }
+
   values = [
     yamlencode({
+      serviceAccount = {
+        create = "true",
+        name   = local.aws_lb_controller_service_account_name,
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.aws_lb_controller.arn
+        }
+      },
       podLabels = merge(
         local.aws_lb_controller_fargate_labels,
       ),

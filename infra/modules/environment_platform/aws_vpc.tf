@@ -92,8 +92,9 @@ resource "aws_subnet" "public" {
   assign_ipv6_address_on_creation = true
 
   tags = {
-    Name   = "${var.environment}-${data.aws_region.current.name}${each.value.az_suffix}-public-${each.value.index}",
-    public = "yes"
+    Name                     = "${var.environment}-${data.aws_region.current.name}${each.value.az_suffix}-public-${each.value.index}",
+    public                   = "yes",
+    "kubernetes.io/role/elb" = "1",
   }
 }
 
@@ -130,8 +131,9 @@ resource "aws_subnet" "private" {
 
 
   tags = {
-    Name   = "${var.environment}-${data.aws_region.current.name}${each.value.az_suffix}-private-${each.value.index}",
-    public = "no"
+    Name                              = "${var.environment}-${data.aws_region.current.name}${each.value.az_suffix}-private-${each.value.index}",
+    public                            = "no",
+    "kubernetes.io/role/internal-elb" = "1",
   }
 
   depends_on = [
@@ -164,4 +166,53 @@ resource "aws_route_table_association" "default_private" {
 
   subnet_id      = aws_subnet.private[each.key].id
   route_table_id = aws_route_table.default_private[each.value.az_suffix].id
+}
+
+/*
+Public LB Security Group
+*/
+
+resource "aws_security_group" "public_lb_sg" {
+  name   = "${helm_release.ingress_nginx.name}-public-sg"
+  vpc_id = aws_vpc.this.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "public_lb_sg_all_ipv4" {
+  for_each = toset(["80", "443"])
+
+  security_group_id = aws_security_group.public_lb_sg.id
+
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = tonumber(each.value)
+  ip_protocol = "tcp"
+  to_port     = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_ingress_rule" "public_lb_sg_all_ipv6" {
+  for_each = toset(["80", "443"])
+
+  security_group_id = aws_security_group.public_lb_sg.id
+
+  cidr_ipv6   = "::/0"
+  from_port   = tonumber(each.value)
+  ip_protocol = "tcp"
+  to_port     = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_egress_rule" "public_lb_sg_all_ipv4" {
+  security_group_id = aws_security_group.public_lb_sg.id
+
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = -1
+  ip_protocol = "-1"
+  to_port     = -1
+}
+
+resource "aws_vpc_security_group_egress_rule" "public_lb_sg_all_ipv6" {
+  security_group_id = aws_security_group.public_lb_sg.id
+
+  cidr_ipv6   = "::/0"
+  from_port   = -1
+  ip_protocol = "-1"
+  to_port     = -1
 }

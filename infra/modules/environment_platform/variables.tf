@@ -40,3 +40,12 @@ variable "private_subnet_ipv6_newbits" {
   type    = number
   default = 8
 }
+
+variable "lb_base_tags" {
+  type    = map(string)
+  default = {}
+}
+
+variable "base_domain_zone_name" {
+  type = string
+}

@@ -105,13 +105,34 @@ resource "aws_eks_fargate_profile" "aws_lb_controller" {
   ]
 }
 
+resource "aws_eks_fargate_profile" "ingress_nginx" {
+  cluster_name           = aws_eks_cluster.this.name
+  fargate_profile_name   = "ingress-nginx"
+  pod_execution_role_arn = aws_iam_role.shared_fargate_profile.arn
+  subnet_ids = [
+    for subnet in aws_subnet.private : subnet.id
+  ]
+
+  selector {
+    namespace = kubernetes_namespace.ingress.metadata.0.name
+    labels = merge(
+      local.ingress_nginx_additional_labels,
+    )
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.shared_fargate_profile-AmazonEKSFargatePodExecutionRolePolicy
+  ]
+}
+
 /*
 Addons
 */
 
 resource "aws_eks_addon" "vpc_cni" {
-  cluster_name = aws_eks_cluster.this.name
-  addon_name   = "vpc-cni"
+  cluster_name             = aws_eks_cluster.this.name
+  addon_name               = "vpc-cni"
+  service_account_role_arn = aws_iam_role.vpc_cni.arn
 
   depends_on = [
     aws_iam_role_policy_attachment.vpc_cni_ipv4,

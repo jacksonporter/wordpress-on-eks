@@ -169,7 +169,7 @@ resource "aws_iam_role" "aws_lb_controller" {
 
 resource "aws_iam_role_policy" "github_provided_policy" {
   name = "github-provided-policy"
-  role = aws_iam_role.vpc_cni.id
+  role = aws_iam_role.aws_lb_controller.id
 
   policy = data.http.aws_lb_controller_iam_policy_json.response_body
 }
