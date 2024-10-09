@@ -138,3 +138,38 @@ resource "aws_iam_role_policy" "vpc_cni_ipv6_policy" {
 
   policy = data.aws_iam_policy_document.vpc_cni_ipv6_policy.json
 }
+
+/*
+AWS LB Controller
+*/
+
+data "aws_iam_policy_document" "aws_lb_controller_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = local.irsa_sub_condition_key
+      values   = ["system:serviceaccount:${local.aws_lb_controller_namespace}:${local.aws_lb_controller_service_account_name}"]
+    }
+
+    principals {
+      identifiers = [aws_iam_openid_connect_provider.irsa.arn]
+      type        = "Federated"
+    }
+  }
+}
+
+resource "aws_iam_role" "aws_lb_controller" {
+  assume_role_policy = data.aws_iam_policy_document.aws_lb_controller_assume_role_policy.json
+  name               = "${local.cluster_name}-aws-lb-controller"
+  path               = "/eks/cluster/irsa/"
+}
+
+resource "aws_iam_role_policy" "github_provided_policy" {
+  name = "github-provided-policy"
+  role = aws_iam_role.vpc_cni.id
+
+  policy = data.http.aws_lb_controller_iam_policy_json.response_body
+}

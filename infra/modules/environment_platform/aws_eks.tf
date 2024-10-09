@@ -85,6 +85,26 @@ resource "aws_eks_fargate_profile" "amazon_cloudwatch_observability" {
   ]
 }
 
+resource "aws_eks_fargate_profile" "aws_lb_controller" {
+  cluster_name           = aws_eks_cluster.this.name
+  fargate_profile_name   = "aws-lb-controller"
+  pod_execution_role_arn = aws_iam_role.shared_fargate_profile.arn
+  subnet_ids = [
+    for subnet in aws_subnet.private : subnet.id
+  ]
+
+  selector {
+    namespace = local.aws_lb_controller_namespace
+    labels = merge(
+      local.aws_lb_controller_fargate_labels,
+    )
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.shared_fargate_profile-AmazonEKSFargatePodExecutionRolePolicy
+  ]
+}
+
 /*
 Addons
 */
