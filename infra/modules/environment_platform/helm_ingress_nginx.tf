@@ -52,6 +52,7 @@ locals {
     "alb.ingress.kubernetes.io/tags" = join(",", [for k, v in merge(
       var.lb_base_tags,
     ) : "${k}=${v}"]),
+    "alb.ingress.kubernetes.io/healthcheck-path" = "/healthz"
   }
 }
 

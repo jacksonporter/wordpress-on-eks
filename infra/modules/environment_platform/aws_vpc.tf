@@ -169,6 +169,19 @@ resource "aws_route_table_association" "default_private" {
 }
 
 /*
+Cluster Security Group
+*/
+
+resource "aws_vpc_security_group_ingress_rule" "cluster_sg_all_from_public_lb" {
+  security_group_id = aws_eks_cluster.this.vpc_config.0.cluster_security_group_id
+
+  referenced_security_group_id = aws_security_group.public_lb_sg.id
+  from_port                    = -1
+  ip_protocol                  = "-1"
+  to_port                      = -1
+}
+
+/*
 Public LB Security Group
 */
 

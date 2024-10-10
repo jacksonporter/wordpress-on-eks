@@ -6,16 +6,20 @@ provider "aws" {
   }
 }
 
+data "aws_eks_cluster_auth" "current" {
+  name = module.environment_platform.cluster_name
+}
+
 provider "kubernetes" {
   host                   = module.environment_platform.cluster_endpoint
   cluster_ca_certificate = module.environment_platform.base64_decoded_cluster_ca_certificate
-  token                  = module.environment_platform._cluster_auth_token
+  token                  = data.aws_eks_cluster_auth.current.token
 }
 
 provider "helm" {
   kubernetes {
     host                   = module.environment_platform.cluster_endpoint
     cluster_ca_certificate = module.environment_platform.base64_decoded_cluster_ca_certificate
-    token                  = module.environment_platform._cluster_auth_token
+    token                  = data.aws_eks_cluster_auth.current.token
   }
 }
