@@ -1,0 +1,44 @@
+################################################################################################
+# Ubuntu Base
+################################################################################################
+
+FROM public.ecr.aws/lts/ubuntu:24.04_stable as ubuntu-base
+
+COPY bin/setup_development_environment.sh /tmp/setup_development_environment.sh
+COPY apt-get_dependencies.txt /tmp/apt-get_dependencies.txt
+
+WORKDIR /tmp
+
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && OSTYPE=linux /tmp/setup_development_environment.sh \
+    && rm /tmp/setup_development_environment.sh \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && chsh -s /bin/zsh \
+    && printf "%s\n" "eval \"\$(direnv hook zsh)\"" >> ~/.zshrc
+
+WORKDIR /workdir
+
+ENTRYPOINT [ "/bin/zsh" ]
+
+################################################################################################
+# Fedora Base
+################################################################################################
+
+FROM public.ecr.aws/docker/library/fedora:42 as fedora-base
+
+COPY bin/setup_development_environment.sh /tmp/setup_development_environment.sh
+COPY dnf_dependencies.txt /tmp/dnf_dependencies.txt
+
+WORKDIR /tmp
+
+RUN dnf update -y \
+    && OSTYPE=linux /tmp/setup_development_environment.sh \
+    && chsh -s /bin/zsh \
+    && printf "%s\n" "eval \"\$(direnv hook zsh)\"" >> ~/.zshrc
+
+WORKDIR /workdir
+
+ENTRYPOINT [ "/bin/zsh" ]

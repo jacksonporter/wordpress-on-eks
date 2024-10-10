@@ -1,0 +1,9 @@
+variable "primary_region" {
+  description = "AWS region to use as the 'primary' region"
+  type        = string
+  default     = "us-west-1"
+}
+
+variable "base_domain_zone_name" {
+  description = "Base domain - hosted zone name"
+}
