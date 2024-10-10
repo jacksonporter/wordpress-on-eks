@@ -84,3 +84,8 @@ tfenv install
 terraform init
 terraform apply
 ```
+
+
+#### Services
+
+Next you'll deploy the services! (More docs to come!)
