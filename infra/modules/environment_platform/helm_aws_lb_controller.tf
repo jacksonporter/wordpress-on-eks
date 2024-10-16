@@ -81,6 +81,7 @@ resource "helm_release" "aws_lb_controller" {
   ]
 
   depends_on = [
+    aws_eks_addon.coredns,
     aws_eks_fargate_profile.aws_lb_controller
   ]
 }
